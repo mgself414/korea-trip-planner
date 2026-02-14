@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Korea Trip Planner</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; line-height: 1.5; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 24px 20px; text-align: center; }
+.header h1 { font-size: 28px; margin-bottom: 4px; }
+.header p { opacity: 0.85; font-size: 14px; }
+
+/* Container */
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+/* Budget Section */
+.budget-section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+.budget-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.budget-bars { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.budget-item label { font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 6px; }
+.budget-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.budget-controls input[type="range"] { flex: 1; height: 6px; -webkit-appearance: none; appearance: none; border-radius: 3px; outline: none; }
+.budget-controls input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+input.range-time { accent-color: #3b82f6; }
+input.range-time::-webkit-slider-thumb { background: #3b82f6; }
+input.range-cost { accent-color: #22c55e; }
+input.range-cost::-webkit-slider-thumb { background: #22c55e; }
+input.range-effort { accent-color: #f59e0b; }
+input.range-effort::-webkit-slider-thumb { background: #f59e0b; }
+.budget-controls input[type="number"] { width: 56px; padding: 4px 6px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-size: 14px; font-weight: 600; }
+.progress-wrap { position: relative; height: 24px; background: #e5e7eb; border-radius: 12px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 12px; transition: width 0.15s ease, background 0.15s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; min-width: 0; }
+.progress-bar span { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
+.bar-time { background: #3b82f6; }
+.bar-cost { background: #22c55e; }
+.bar-effort { background: #f59e0b; }
+.bar-over { background: #ef4444 !important; }
+.over-label { color: #ef4444; font-size: 12px; font-weight: 700; margin-top: 4px; display: none; }
+.over-label.show { display: block; }
+
+/* Toolbar */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; }
+.search-box { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-reset { background: #ef4444; color: #fff; }
+.btn-reset:hover { background: #dc2626; }
+.btn-sort { background: #e5e7eb; color: #333; }
+.btn-sort:hover { background: #d1d5db; }
+.btn-sort.active { background: #667eea; color: #fff; }
+
+/* Category Tabs */
+.cat-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.cat-tab { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #ddd; background: #fff; transition: all 0.15s; }
+.cat-tab:hover { border-color: #667eea; }
+.cat-tab.active { background: #667eea; color: #fff; border-color: #667eea; }
+
+/* Activity List */
+.category-group { margin-bottom: 20px; }
+.category-header { font-size: 16px; font-weight: 700; padding: 10px 0; border-bottom: 2px solid #667eea; margin-bottom: 8px; color: #667eea; }
+.activity-card { display: grid; grid-template-columns: 36px 1fr 80px 80px 80px; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; transition: background 0.1s; }
+.activity-card:hover { background: #f0f2ff; }
+.activity-card.selected { background: #eef2ff; border-left: 3px solid #667eea; }
+.activity-card input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; }
+.activity-name { font-size: 14px; }
+.activity-name .act-id { color: #999; font-size: 12px; margin-right: 4px; }
+.score-input { width: 48px; padding: 4px; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; font-size: 13px; font-weight: 600; background: #f9fafb; }
+.score-input:focus { border-color: #667eea; outline: none; background: #fff; }
+.score-label { font-size: 10px; color: #999; text-align: center; display: block; }
+.score-col { text-align: center; }
+
+/* Summary Panel */
+.summary-section { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-top: 20px; overflow: hidden; }
+.summary-toggle { width: 100%; padding: 16px 24px; background: #667eea; color: #fff; border: none; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.summary-toggle .arrow { transition: transform 0.2s; }
+.summary-toggle .arrow.open { transform: rotate(180deg); }
+.summary-body { padding: 0 24px 24px; max-height: 600px; overflow-y: auto; }
+.summary-body.collapsed { display: none; }
+.summary-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+.summary-table th { text-align: left; padding: 10px 8px; border-bottom: 2px solid #667eea; font-size: 13px; color: #555; }
+.summary-table td { padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; }
+.summary-table .col-time { color: #3b82f6; font-weight: 600; text-align: center; }
+.summary-table .col-cost { color: #22c55e; font-weight: 600; text-align: center; }
+.summary-table .col-effort { color: #f59e0b; font-weight: 600; text-align: center; }
+.summary-table .remove-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+.summary-table .remove-btn:hover { background: #fee2e2; }
+.summary-total { font-weight: 700; background: #f5f7fa; }
+.summary-total td { border-top: 2px solid #667eea; border-bottom: none; }
+.summary-stats { display: flex; gap: 20px; margin-top: 12px; font-size: 14px; color: #555; }
+.summary-stats strong { color: #1a1a2e; }
+.empty-summary { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .budget-bars { grid-template-columns: 1fr; }
+  .activity-card { grid-template-columns: 30px 1fr; gap: 4px; }
+  .score-col { display: none; }
+  .activity-card.selected .score-col { display: block; }
+  .activity-card { position: relative; }
+  .mobile-scores { display: flex; gap: 8px; grid-column: 1 / -1; padding-top: 4px; }
+  .toolbar { flex-direction: column; }
+  .search-box { min-width: 100%; }
+}
+@media (min-width: 769px) {
+  .mobile-scores { display: none !important; }
+}
+
+/* Noscript */
+noscript { display: block; text-align: center; padding: 40px; font-size: 18px; color: #ef4444; }
+
+/* Column headers for activity list */
+.list-header { display: grid; grid-template-columns: 36px 1fr 80px 80px 80px; gap: 8px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; }
+.list-header span:nth-child(n+3) { text-align: center; }
+@media (max-width: 768px) {
+  .list-header { display: none; }
+}
+</style>
+</head>
+<body>
+<noscript>This app requires JavaScript to run. Please enable JavaScript in your browser.</noscript>
+
+<div class="header">
+  <h1>🇰🇷 Korea Trip Planner</h1>
+  <p>Plan your perfect Korea trip — balance your Time, Cost & Effort budget</p>
+</div>
+
+<div class="container">
+  <!-- Budget Section -->
+  <div class="budget-section">
+    <div class="budget-title">
+      <span>Your Budget</span>
+      <button class="btn btn-reset" onclick="resetAll()">Reset All</button>
+    </div>
+    <div class="budget-bars">
+      <div class="budget-item">
+        <label>⏱ Time</label>
+        <div class="budget-controls">
+          <input type="range" class="range-time" id="range-time" min="1" max="100" value="30" oninput="syncBudget('time',this.value)">
+          <input type="number" id="num-time" min="1" max="100" value="30" onchange="syncBudget('time',this.value)">
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar bar-time" id="bar-time"><span id="bar-time-text">0 / 30</span></div>
+        </div>
+        <div class="over-label" id="over-time">Over budget!</div>
+      </div>
+      <div class="budget-item">
+        <label>💰 Cost</label>
+        <div class="budget-controls">
+          <input type="range" class="range-cost" id="range-cost" min="1" max="100" value="30" oninput="syncBudget('cost',this.value)">
+          <input type="number" id="num-cost" min="1" max="100" value="30" onchange="syncBudget('cost',this.value)">
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar bar-cost" id="bar-cost"><span id="bar-cost-text">0 / 30</span></div>
+        </div>
+        <div class="over-label" id="over-cost">Over budget!</div>
+      </div>
+      <div class="budget-item">
+        <label>💪 Effort</label>
+        <div class="budget-controls">
+          <input type="range" class="range-effort" id="range-effort" min="1" max="100" value="30" oninput="syncBudget('effort',this.value)">
+          <input type="number" id="num-effort" min="1" max="100" value="30" onchange="syncBudget('effort',this.value)">
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar bar-effort" id="bar-effort"><span id="bar-effort-text">0 / 30</span></div>
+        </div>
+        <div class="over-label" id="over-effort">Over budget!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input type="text" class="search-box" id="search" placeholder="Search activities..." oninput="renderList()">
+    <button class="btn btn-sort" data-sort="time" onclick="toggleSort('time')">Sort: Time</button>
+    <button class="btn btn-sort" data-sort="cost" onclick="toggleSort('cost')">Sort: Cost</button>
+    <button class="btn btn-sort" data-sort="effort" onclick="toggleSort('effort')">Sort: Effort</button>
+  </div>
+
+  <!-- Category Tabs -->
+  <div class="cat-tabs" id="cat-tabs"></div>
+
+  <!-- Activity List -->
+  <div id="activity-list"></div>
+
+  <!-- Summary Panel -->
+  <div class="summary-section">
+    <button class="summary-toggle" onclick="toggleSummary()">
+      <span>Selected Activities (<span id="summary-count">0</span>)</span>
+      <span class="arrow open" id="summary-arrow">▼</span>
+    </button>
+    <div class="summary-body" id="summary-body">
+      <div id="summary-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+const activitiesData = [
+  {id:1, name:"Popular idol concert (booking + show)", cat:"Entertainment & Events", time:1, cost:7, effort:9},
+  {id:2, name:"K-POP music show audience (apply & wait)", cat:"Entertainment & Events", time:7, cost:2, effort:9},
+  {id:3, name:"Pro baseball game (booking + watch)", cat:"Entertainment & Events", time:3, cost:4, effort:5},
+  {id:4, name:"Pro soccer game", cat:"Entertainment & Events", time:3, cost:3, effort:4},
+  {id:5, name:"Esports match (ticket + watch)", cat:"Entertainment & Events", time:3, cost:4, effort:6},
+  {id:6, name:"Big musical show", cat:"Entertainment & Events", time:2, cost:7, effort:6},
+  {id:7, name:"Theater / small stage performance", cat:"Entertainment & Events", time:2, cost:4, effort:4},
+  {id:8, name:"Club hopping (Hongdae / Itaewon)", cat:"Sightseeing & Outdoors", time:4, cost:5, effort:5},
+  {id:9, name:"Han River picnic (delivery + mat)", cat:"Sightseeing & Outdoors", time:4, cost:3, effort:4},
+  {id:10, name:"Han River bike rental & ride", cat:"Sightseeing & Outdoors", time:4, cost:2, effort:3},
+  {id:11, name:"Han River cruise", cat:"Sightseeing & Outdoors", time:3, cost:4, effort:3},
+  {id:12, name:"Namsan Tower visit (cable car)", cat:"Sightseeing & Outdoors", time:5, cost:3, effort:4},
+  {id:13, name:"Gyeongbokgung Palace", cat:"Sightseeing & Outdoors", time:5, cost:2, effort:3},
+  {id:14, name:"Changdeokgung + Secret Garden (reservation)", cat:"Sightseeing & Outdoors", time:6, cost:2, effort:6},
+  {id:15, name:"Deoksugung Palace", cat:"Sightseeing & Outdoors", time:4, cost:1, effort:2},
+  {id:16, name:"Jongmyo Shrine", cat:"Sightseeing & Outdoors", time:4, cost:1, effort:3},
+  {id:17, name:"Hanbok rental + palace photoshoot", cat:"Sightseeing & Outdoors", time:6, cost:3, effort:4},
+  {id:18, name:"Bukchon Hanok Village walk", cat:"Sightseeing & Outdoors", time:5, cost:1, effort:3},
+  {id:19, name:"Insadong traditional souvenir shopping", cat:"Sightseeing & Outdoors", time:4, cost:3, effort:3},
+  {id:20, name:"Cheonggyecheon night stroll", cat:"Sightseeing & Outdoors", time:3, cost:1, effort:2},
+  {id:21, name:"DDP exhibition + night view", cat:"Sightseeing & Outdoors", time:4, cost:3, effort:2},
+  {id:22, name:"Myeongdong street shopping", cat:"Sightseeing & Outdoors", time:6, cost:6, effort:5},
+  {id:23, name:"Hongdae street exploring (shops + busking)", cat:"Sightseeing & Outdoors", time:5, cost:4, effort:4},
+  {id:24, name:"Seongsu cafe tour (hot spots)", cat:"Sightseeing & Outdoors", time:6, cost:5, effort:4},
+  {id:25, name:"Apgujeong / Cheongdam luxury shopping", cat:"Sightseeing & Outdoors", time:6, cost:9, effort:4},
+  {id:26, name:"COEX Mall + Aquarium", cat:"Sightseeing & Outdoors", time:5, cost:5, effort:3},
+  {id:27, name:"Lotte World Adventure", cat:"Sightseeing & Outdoors", time:8, cost:7, effort:6},
+  {id:28, name:"Everland day trip", cat:"Sightseeing & Outdoors", time:10, cost:7, effort:7},
+  {id:29, name:"Early morning hiking (Bukhansan / Gwanaksan)", cat:"Sightseeing & Outdoors", time:8, cost:2, effort:6},
+  {id:30, name:"Namsan Dulle-gil trekking", cat:"Sightseeing & Outdoors", time:6, cost:1, effort:4},
+  {id:31, name:"Olive Young shopping", cat:"Shopping", time:5, cost:5, effort:4},
+  {id:32, name:"Daiso shopping (souvenirs & daily goods)", cat:"Shopping", time:4, cost:2, effort:2},
+  {id:33, name:"Duty-free shopping (downtown / airport)", cat:"Shopping", time:7, cost:8, effort:6},
+  {id:34, name:"Department store food hall tour", cat:"Shopping", time:6, cost:5, effort:4},
+  {id:35, name:"Traditional market food tour (Gwangjang / Mangwon)", cat:"Shopping", time:6, cost:4, effort:5},
+  {id:36, name:"Noryangjin fish market raw fish", cat:"Shopping", time:7, cost:6, effort:6},
+  {id:37, name:"Convenience store late-night snacks", cat:"Shopping", time:3, cost:2, effort:2},
+  {id:38, name:"Pharmacy shopping (vitamins / patches)", cat:"Shopping", time:4, cost:3, effort:6},
+  {id:39, name:"Getting glasses made (same-day)", cat:"Shopping", time:6, cost:5, effort:6},
+  {id:40, name:"Contact lens purchase", cat:"Shopping", time:2, cost:3, effort:4},
+  {id:41, name:"Electronics shopping (Yongsan / Gangbyeon)", cat:"Shopping", time:7, cost:7, effort:6},
+  {id:42, name:"K-POP album / merch purchase (with benefits)", cat:"Shopping", time:5, cost:4, effort:7},
+  {id:43, name:"Vintage record / LP shopping (Euljiro / Hongdae)", cat:"Shopping", time:6, cost:4, effort:5},
+  {id:44, name:"Character store visit (Kakao / LINE Friends)", cat:"Shopping", time:4, cost:3, effort:2},
+  {id:45, name:"Stationery / art supplies shopping", cat:"Shopping", time:4, cost:3, effort:3},
+  {id:46, name:"Miniso / variety shop browsing", cat:"Shopping", time:4, cost:2, effort:2},
+  {id:47, name:"Korean traditional liquor shopping", cat:"Shopping", time:3, cost:3, effort:4},
+  {id:48, name:"Whiskey bar visit (reservation)", cat:"Shopping", time:5, cost:7, effort:6},
+  {id:49, name:"Cafe dessert tour (croffle / bingsu)", cat:"Food & Drink", time:6, cost:5, effort:4},
+  {id:50, name:"Famous chicken restaurant (waiting)", cat:"Food & Drink", time:5, cost:4, effort:4},
+  {id:51, name:"Samgyeopsal / Hanwoo BBQ", cat:"Food & Drink", time:6, cost:7, effort:4},
+  {id:52, name:"Hanjeongsik (Korean full course meal)", cat:"Food & Drink", time:7, cost:7, effort:5},
+  {id:53, name:"Michelin restaurant (reservation + visit)", cat:"Food & Drink", time:6, cost:8, effort:8},
+  {id:54, name:"Night market / pojangmacha experience", cat:"Food & Drink", time:5, cost:4, effort:4},
+  {id:55, name:"Food delivery app order", cat:"Food & Drink", time:2, cost:3, effort:7},
+  {id:56, name:"Packing & sending gifts (domestic)", cat:"Logistics & Travel", time:4, cost:3, effort:6},
+  {id:57, name:"International shipping / duty-free export prep", cat:"Logistics & Travel", time:6, cost:7, effort:8},
+  {id:58, name:"Currency exchange (bank / exchange booth)", cat:"Logistics & Travel", time:2, cost:2, effort:3},
+  {id:59, name:"Tax refund processing", cat:"Logistics & Travel", time:4, cost:1, effort:7},
+  {id:60, name:"Korean SIM / eSIM activation", cat:"Logistics & Travel", time:2, cost:3, effort:5},
+  {id:61, name:"Subway / bus ride (T-money card)", cat:"Logistics & Travel", time:4, cost:1, effort:4},
+  {id:62, name:"Taxi app ride", cat:"Logistics & Travel", time:2, cost:4, effort:5},
+  {id:63, name:"KTX booking + day trip to provinces", cat:"Logistics & Travel", time:7, cost:6, effort:6},
+  {id:64, name:"Airport limousine / AREX", cat:"Logistics & Travel", time:3, cost:2, effort:3},
+  {id:65, name:"Luggage storage (locker / storage)", cat:"Logistics & Travel", time:2, cost:2, effort:4},
+  {id:66, name:"Hotel check-in / check-out", cat:"Logistics & Travel", time:2, cost:6, effort:3},
+  {id:67, name:"Guesthouse check-in (with interaction)", cat:"Logistics & Travel", time:3, cost:3, effort:5},
+  {id:68, name:"Airbnb self check-in", cat:"Logistics & Travel", time:3, cost:5, effort:6},
+  {id:69, name:"Travel insurance purchase", cat:"Health & Beauty", time:1, cost:3, effort:4},
+  {id:70, name:"Lost item recovery (transit / store)", cat:"Health & Beauty", time:8, cost:2, effort:9},
+  {id:71, name:"Police report (theft / accident)", cat:"Health & Beauty", time:7, cost:1, effort:9},
+  {id:72, name:"Hospital outpatient visit (cold etc.)", cat:"Health & Beauty", time:7, cost:5, effort:8},
+  {id:73, name:"Emergency room visit", cat:"Health & Beauty", time:8, cost:7, effort:9},
+  {id:74, name:"Dermatology consultation + procedure booking", cat:"Health & Beauty", time:4, cost:6, effort:7},
+  {id:75, name:"Botox / filler treatment", cat:"Health & Beauty", time:6, cost:7, effort:7},
+  {id:76, name:"Skin laser (toning / lifting)", cat:"Health & Beauty", time:7, cost:8, effort:7},
+  {id:77, name:"Plastic surgery consultation (w/ interpreter)", cat:"Health & Beauty", time:7, cost:10, effort:9},
+  {id:78, name:"Dental scaling / simple treatment", cat:"Health & Beauty", time:6, cost:6, effort:8},
+  {id:79, name:"Massage / spa reservation visit", cat:"Health & Beauty", time:6, cost:6, effort:5},
+  {id:80, name:"Nails / lash extensions / waxing", cat:"Health & Beauty", time:6, cost:4, effort:6},
+  {id:81, name:"Jjimjilbang (Korean sauna) experience", cat:"Culture & Experience", time:6, cost:3, effort:5},
+  {id:82, name:"Korean bathhouse experience", cat:"Culture & Experience", time:5, cost:2, effort:5},
+  {id:83, name:"Templestay (1 night 2 days)", cat:"Culture & Experience", time:10, cost:4, effort:7},
+  {id:84, name:"Korean cooking class", cat:"Culture & Experience", time:6, cost:6, effort:5},
+  {id:85, name:"Makgeolli making experience", cat:"Culture & Experience", time:6, cost:5, effort:6},
+  {id:86, name:"Pottery / craft one-day class", cat:"Culture & Experience", time:7, cost:6, effort:6},
+  {id:87, name:"DMZ tour (group)", cat:"Culture & Experience", time:9, cost:6, effort:6},
+  {id:88, name:"Jeju Island 2N3D trip", cat:"Culture & Experience", time:10, cost:7, effort:7},
+  {id:89, name:"Cherry blossom / autumn foliage excursion", cat:"Culture & Experience", time:9, cost:4, effort:7},
+  {id:90, name:"Night view photo tour (rooftop / observatory)", cat:"Culture & Experience", time:6, cost:4, effort:4}
+];
+
+// ============ STATE ============
+let activities = activitiesData.map(a => ({...a}));
+let selected = new Set();
+let budget = { time: 30, cost: 30, effort: 30 };
+let currentCat = 'All';
+let currentSort = null;
+let sortAsc = true;
+
+// Sample selections (balanced mix)
+const sampleIds = [13, 17, 22, 51, 9, 31, 81]; // Gyeongbokgung, Hanbok, Myeongdong, BBQ, Han River picnic, Olive Young, Jjimjilbang
+
+// ============ INIT ============
+function init() {
+  // Load from URL if present
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('s')) {
+    const ids = params.get('s').split(',').map(Number).filter(n => n >= 1 && n <= 90);
+    ids.forEach(id => selected.add(id));
+  } else {
+    sampleIds.forEach(id => selected.add(id));
+  }
+  if (params.has('bt')) budget.time = clamp(+params.get('bt'), 1, 100);
+  if (params.has('bc')) budget.cost = clamp(+params.get('bc'), 1, 100);
+  if (params.has('be')) budget.effort = clamp(+params.get('be'), 1, 100);
+
+  ['time','cost','effort'].forEach(k => {
+    document.getElementById('range-'+k).value = budget[k];
+    document.getElementById('num-'+k).value = budget[k];
+  });
+
+  renderCatTabs();
+  renderList();
+  updateBars();
+  renderSummary();
+}
+
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+// ============ BUDGET ============
+function syncBudget(type, val) {
+  val = clamp(parseInt(val) || 1, 1, 100);
+  budget[type] = val;
+  document.getElementById('range-'+type).value = val;
+  document.getElementById('num-'+type).value = val;
+  updateBars();
+  updateShareUrl();
+}
+
+function updateBars() {
+  ['time','cost','effort'].forEach(type => {
+    let used = 0;
+    selected.forEach(id => {
+      const a = activities.find(x => x.id === id);
+      if (a) used += a[type];
+    });
+    const max = budget[type];
+    const pct = max > 0 ? Math.min((used / max) * 100, 100) : 0;
+    const bar = document.getElementById('bar-'+type);
+    const text = document.getElementById('bar-'+type+'-text');
+    const over = document.getElementById('over-'+type);
+    bar.style.width = Math.max(pct, used > 0 ? 8 : 0) + '%';
+    text.textContent = used + ' / ' + max;
+    if (used > max) {
+      bar.classList.add('bar-over');
+      bar.style.width = '100%';
+      over.classList.add('show');
+    } else {
+      bar.classList.remove('bar-over');
+      over.classList.remove('show');
+    }
+  });
+}
+
+// ============ CATEGORIES ============
+const categories = ['All', ...new Set(activitiesData.map(a => a.cat))];
+
+function renderCatTabs() {
+  const container = document.getElementById('cat-tabs');
+  container.innerHTML = categories.map(c =>
+    `<button class="cat-tab ${c === currentCat ? 'active' : ''}" onclick="setCat('${c}')">${c === 'All' ? 'All' : c} <span style="opacity:0.6">(${c === 'All' ? activities.length : activities.filter(a=>a.cat===c).length})</span></button>`
+  ).join('');
+}
+
+function setCat(cat) {
+  currentCat = cat;
+  renderCatTabs();
+  renderList();
+}
+
+// ============ SORTING ============
+function toggleSort(type) {
+  if (currentSort === type) {
+    sortAsc = !sortAsc;
+  } else {
+    currentSort = type;
+    sortAsc = true;
+  }
+  document.querySelectorAll('.btn-sort').forEach(b => {
+    b.classList.toggle('active', b.dataset.sort === currentSort);
+    if (b.dataset.sort === currentSort) {
+      b.textContent = 'Sort: ' + type.charAt(0).toUpperCase() + type.slice(1) + (sortAsc ? ' ↑' : ' ↓');
+    } else {
+      b.textContent = 'Sort: ' + b.dataset.sort.charAt(0).toUpperCase() + b.dataset.sort.slice(1);
+    }
+  });
+  renderList();
+}
+
+// ============ RENDER LIST ============
+function renderList() {
+  const search = document.getElementById('search').value.toLowerCase();
+  let filtered = activities.filter(a => {
+    if (currentCat !== 'All' && a.cat !== currentCat) return false;
+    if (search && !a.name.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  if (currentSort) {
+    filtered.sort((a, b) => sortAsc ? a[currentSort] - b[currentSort] : b[currentSort] - a[currentSort]);
+  }
+
+  const container = document.getElementById('activity-list');
+
+  if (currentSort || currentCat !== 'All') {
+    // Flat list
+    let html = `<div class="list-header"><span></span><span>Activity</span><span>Time</span><span>Cost</span><span>Effort</span></div>`;
+    html += filtered.map(a => cardHTML(a)).join('');
+    container.innerHTML = html;
+  } else {
+    // Grouped by category
+    const groups = {};
+    filtered.forEach(a => {
+      if (!groups[a.cat]) groups[a.cat] = [];
+      groups[a.cat].push(a);
+    });
+    let html = '';
+    for (const cat of categories.slice(1)) {
+      if (!groups[cat]) continue;
+      html += `<div class="category-group">
+        <div class="category-header">${cat}</div>
+        <div class="list-header"><span></span><span>Activity</span><span>Time</span><span>Cost</span><span>Effort</span></div>
+        ${groups[cat].map(a => cardHTML(a)).join('')}
+      </div>`;
+    }
+    container.innerHTML = html;
+  }
+}
+
+function cardHTML(a) {
+  const checked = selected.has(a.id) ? 'checked' : '';
+  const sel = selected.has(a.id) ? 'selected' : '';
+  return `<div class="activity-card ${sel}" id="card-${a.id}">
+    <input type="checkbox" ${checked} onchange="toggleActivity(${a.id})">
+    <div class="activity-name"><span class="act-id">#${a.id}</span>${a.name}</div>
+    <div class="score-col"><input class="score-input" type="number" min="1" max="10" value="${a.time}" onchange="updateScore(${a.id},'time',this.value)"><span class="score-label">Time</span></div>
+    <div class="score-col"><input class="score-input" type="number" min="1" max="10" value="${a.cost}" onchange="updateScore(${a.id},'cost',this.value)"><span class="score-label">Cost</span></div>
+    <div class="score-col"><input class="score-input" type="number" min="1" max="10" value="${a.effort}" onchange="updateScore(${a.id},'effort',this.value)"><span class="score-label">Effort</span></div>
+  </div>`;
+}
+
+// ============ INTERACTIONS ============
+function toggleActivity(id) {
+  if (selected.has(id)) {
+    selected.delete(id);
+  } else {
+    selected.add(id);
+  }
+  const card = document.getElementById('card-' + id);
+  if (card) card.classList.toggle('selected', selected.has(id));
+  updateBars();
+  renderSummary();
+  updateShareUrl();
+}
+
+function updateScore(id, type, val) {
+  val = clamp(parseInt(val) || 1, 1, 10);
+  const a = activities.find(x => x.id === id);
+  if (a) a[type] = val;
+  updateBars();
+  renderSummary();
+}
+
+function resetAll() {
+  selected.clear();
+  activities = activitiesData.map(a => ({...a}));
+  renderList();
+  updateBars();
+  renderSummary();
+  updateShareUrl();
+}
+
+function removeFromSummary(id) {
+  selected.delete(id);
+  renderList();
+  updateBars();
+  renderSummary();
+  updateShareUrl();
+}
+
+// ============ SUMMARY ============
+let summaryOpen = true;
+
+function toggleSummary() {
+  summaryOpen = !summaryOpen;
+  document.getElementById('summary-body').classList.toggle('collapsed', !summaryOpen);
+  document.getElementById('summary-arrow').classList.toggle('open', summaryOpen);
+}
+
+function renderSummary() {
+  const count = selected.size;
+  document.getElementById('summary-count').textContent = count;
+
+  if (count === 0) {
+    document.getElementById('summary-content').innerHTML = '<div class="empty-summary">No activities selected. Check some activities above to build your trip plan!</div>';
+    return;
+  }
+
+  const items = [];
+  let totTime = 0, totCost = 0, totEffort = 0;
+  selected.forEach(id => {
+    const a = activities.find(x => x.id === id);
+    if (a) {
+      items.push(a);
+      totTime += a.time;
+      totCost += a.cost;
+      totEffort += a.effort;
+    }
+  });
+
+  let html = `<div class="summary-stats">
+    <span>Selected: <strong>${count} activities</strong></span>
+    <span>Time: <strong style="color:#3b82f6">${totTime}</strong>/${budget.time}</span>
+    <span>Cost: <strong style="color:#22c55e">${totCost}</strong>/${budget.cost}</span>
+    <span>Effort: <strong style="color:#f59e0b">${totEffort}</strong>/${budget.effort}</span>
+  </div>`;
+  html += `<table class="summary-table">
+    <thead><tr><th>#</th><th>Activity</th><th>Time</th><th>Cost</th><th>Effort</th><th></th></tr></thead>
+    <tbody>`;
+  items.forEach(a => {
+    html += `<tr>
+      <td style="color:#999">${a.id}</td>
+      <td>${a.name}</td>
+      <td class="col-time">${a.time}</td>
+      <td class="col-cost">${a.cost}</td>
+      <td class="col-effort">${a.effort}</td>
+      <td><button class="remove-btn" onclick="removeFromSummary(${a.id})" title="Remove">✕</button></td>
+    </tr>`;
+  });
+  html += `<tr class="summary-total">
+    <td></td><td><strong>Total</strong></td>
+    <td class="col-time">${totTime}</td>
+    <td class="col-cost">${totCost}</td>
+    <td class="col-effort">${totEffort}</td>
+    <td></td>
+  </tr></tbody></table>`;
+
+  document.getElementById('summary-content').innerHTML = html;
+}
+
+// ============ URL SHARE ============
+function updateShareUrl() {
+  if (selected.size === 0) return;
+  const ids = [...selected].sort((a,b) => a-b).join(',');
+  const params = new URLSearchParams();
+  params.set('s', ids);
+  params.set('bt', budget.time);
+  params.set('bc', budget.cost);
+  params.set('be', budget.effort);
+  const newUrl = window.location.pathname + '?' + params.toString();
+  window.history.replaceState(null, '', newUrl);
+}
+
+// ============ START ============
+init();
+</script>
+</body>
+</html>
